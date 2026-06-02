@@ -1,13 +1,37 @@
-Month,Product,Region,Sales,Profit
-January,Laptop,India,12000,3000
-January,Mobile,India,8000,2000
-February,Laptop,USA,15000,4000
-February,Tablet,USA,6000,1500
-March,Mobile,India,11000,2500
-March,Laptop,Germany,17000,5000
-April,Tablet,Germany,7000,1800
-April,Mobile,USA,13000,3200
-May,Laptop,India,19000,6000
-May,Tablet,USA,9000,2100
-June,Mobile,Germany,14000,3500
-June,Laptop,USA,22000,7000
+Date,Region,Category,Product,Revenue,Units,Profit,Rating
+2025-01-02,North America,Laptop,MacBook Pro,24000,12,6000,4.8
+2025-01-05,Europe,Mobile,iPhone 15,35000,35,14000,4.7
+2025-01-08,Asia,Tablet,iPad Air,16800,28,5040,4.5
+2025-01-12,North America,Mobile,Galaxy S24,33600,42,10080,4.6
+2025-01-15,Europe,Laptop,ThinkPad X1,27000,18,5400,4.3
+2025-01-18,Asia,Laptop,MacBook Pro,30000,15,7500,4.9
+2025-01-22,North America,Tablet,Surface Pro,22000,22,4400,4.2
+2025-02-01,Europe,Tablet,iPad Air,18000,30,5400,4.6
+2025-02-05,Asia,Mobile,Pixel 8,31500,45,6300,4.4
+2025-02-09,North America,Laptop,ThinkPad X1,37500,25,7500,4.5
+2025-02-14,Europe,Mobile,Galaxy S24,30400,38,9120,4.7
+2025-02-18,Asia,Tablet,Surface Pro,18000,18,3600,4.1
+2025-02-22,North America,Mobile,iPhone 15,50000,50,20000,4.8
+2025-03-03,Europe,Laptop,MacBook Pro,40000,20,10000,4.9
+2025-03-08,Asia,Mobile,iPhone 15,48000,48,19200,4.7
+2025-03-12,North America,Tablet,iPad Air,21000,35,6300,4.5
+2025-03-15,Europe,Laptop,ThinkPad X1,33000,22,6600,4.4
+2025-03-20,Asia,Mobile,Galaxy S24,32000,40,9600,4.6
+2025-03-25,North America,Laptop,MacBook Pro,36000,18,9000,4.8
+2025-04-02,Europe,Tablet,Surface Pro,25000,25,5000,4.2
+2025-04-07,Asia,Laptop,ThinkPad X1,30000,20,6000,4.5
+2025-04-11,North America,Mobile,Pixel 8,38500,55,7700,4.4
+2025-04-16,Europe,Mobile,iPhone 15,42000,42,16800,4.8
+2025-04-20,Asia,Tablet,iPad Air,19200,32,5760,4.6
+2025-04-25,North America,Laptop,ThinkPad X1,42000,28,8400,4.5
+2025-05-01,Europe,Mobile,Galaxy S24,36000,45,10800,4.7
+2025-05-06,Asia,Laptop,MacBook Pro,44000,22,11000,4.9
+2025-05-10,North America,Tablet,Surface Pro,30000,30,6000,4.3
+2025-05-15,Europe,Laptop,MacBook Pro,48000,24,12000,4.9
+2025-05-20,Asia,Mobile,Pixel 8,35000,50,7000,4.5
+2025-05-25,North America,Mobile,iPhone 15,60000,60,24000,4.8
+2025-06-02,Europe,Tablet,iPad Air,22800,38,6840,4.6
+2025-06-07,Asia,Laptop,ThinkPad X1,37500,25,7500,4.4
+2025-06-12,North America,Laptop,MacBook Pro,60000,30,15000,4.9
+2025-06-18,Europe,Mobile,Pixel 8,33600,48,6720,4.5
+2025-06-25,Asia,Tablet,Surface Pro,28000,28,5600,4.2
