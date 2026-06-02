@@ -1,0 +1,13 @@
+Month,Product,Region,Sales,Profit
+January,Laptop,India,12000,3000
+January,Mobile,India,8000,2000
+February,Laptop,USA,15000,4000
+February,Tablet,USA,6000,1500
+March,Mobile,India,11000,2500
+March,Laptop,Germany,17000,5000
+April,Tablet,Germany,7000,1800
+April,Mobile,USA,13000,3200
+May,Laptop,India,19000,6000
+May,Tablet,USA,9000,2100
+June,Mobile,Germany,14000,3500
+June,Laptop,USA,22000,7000
