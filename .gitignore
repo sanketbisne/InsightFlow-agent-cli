@@ -201,3 +201,11 @@ my_env.tfvars
 
 # A2A Inspector
 tools/a2a-inspector/
+
+# Generated chart artifacts (bar_chart.png, pie_chart.png, infographic.png, etc.)
+*_chart.png
+infographic.png
+*.infographic.png
+
+# Temporary CSV data files
+temp_data.csv

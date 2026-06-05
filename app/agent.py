@@ -5,6 +5,8 @@ import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 import google.auth
+import io
+import base64
 
 from google.adk.agents import Agent
 from google.adk.apps import App
@@ -58,6 +60,40 @@ I can help you with:
 
 Upload or place a CSV file in the project folder and ask me to analyze it 🚀
 """
+def _load_csv(file_path_or_content: str) -> pd.DataFrame:
+    """
+    Loads a DataFrame from a file path or raw CSV content string.
+    """
+    if not os.path.exists(file_path_or_content) and ("," in file_path_or_content or "\n" in file_path_or_content):
+        return pd.read_csv(io.StringIO(file_path_or_content))
+    return pd.read_csv(file_path_or_content)
+
+
+def save_csv_content(csv_content: str, file_name: str = "temp_data.csv") -> str:
+    """
+    Saves raw CSV content to a file in the workspace so other tools can access it.
+
+    Args:
+        csv_content: The raw CSV data string.
+        file_name: The name of the file to save (e.g., 'sales_data.csv'). Defaults to 'temp_data.csv'.
+
+    Returns:
+        Confirmation message with the path.
+    """
+    try:
+        # Clean filename to prevent path traversal
+        file_name = os.path.basename(file_name)
+        if not file_name.endswith(".csv"):
+            file_name += ".csv"
+        
+        with open(file_name, "w", encoding="utf-8") as f:
+            f.write(csv_content.strip())
+            
+        return f"Successfully saved CSV content to '{file_name}'."
+    except Exception as e:
+        return f"❌ Error saving CSV content: {str(e)}"
+
+
 def analyze_csv(file_path: str) -> str:
     """
     Analyze CSV file.
@@ -70,7 +106,7 @@ def analyze_csv(file_path: str) -> str:
     """
 
     try:
-        df = pd.read_csv(file_path)
+        df = _load_csv(file_path)
 
         return f"""
 ✅ CSV Analysis Complete
@@ -94,6 +130,48 @@ def analyze_csv(file_path: str) -> str:
 
 
 # =============================================================================
+# CHART HELPERS & PALETTE
+# =============================================================================
+
+CHART_COLORS = ["#1A365D", "#2B6CB0", "#319795", "#4FD1C5", "#90CDF4", "#718096", "#E2E8F0", "#4A5568"]
+
+def _prepare_chart_data(df: pd.DataFrame, numeric_col: str) -> tuple[pd.DataFrame, pd.DataFrame, str]:
+    """
+    Identifies a categorical column, aggregates (sums) numeric data by that category,
+    and returns styled sub-dataframes for bar chart and pie chart.
+    
+    Returns:
+        (bar_data, pie_data, category_column_name)
+    """
+    categorical_columns = df.select_dtypes(include=["object", "category", "str", "string"]).columns
+    category_col = None
+    
+    # Try to find a suitable column for grouping
+    for c in ["Product", "Category", "Region", "Month", "Date"]:
+        if c in df.columns:
+            category_col = c
+            break
+    if not category_col and len(categorical_columns) > 0:
+        category_col = categorical_columns[0]
+        
+    if category_col:
+        # Group and sum
+        grouped = df.groupby(category_col)[numeric_col].sum().reset_index()
+        # Sort descending
+        grouped = grouped.sort_values(by=numeric_col, ascending=False)
+        bar_data = grouped.head(10)
+        pie_data = grouped.head(5)
+        return bar_data, pie_data, category_col
+    else:
+        # Fallback to index if no categorical column is present
+        df_copy = df.copy()
+        df_copy["Index"] = df_copy.index.astype(str)
+        bar_data = df_copy.head(10)
+        pie_data = df_copy.head(5)
+        return bar_data, pie_data, "Index"
+
+
+# =============================================================================
 # TOOL 2 - GENERATE BAR CHART
 # =============================================================================
 
@@ -109,7 +187,7 @@ def generate_bar_chart(file_path: str) -> str:
     """
 
     try:
-        df = pd.read_csv(file_path)
+        df = _load_csv(file_path)
 
         numeric_columns = df.select_dtypes(include=["number"]).columns
 
@@ -118,28 +196,33 @@ def generate_bar_chart(file_path: str) -> str:
 
         column = numeric_columns[0]
 
-        plt.figure(figsize=(10, 5))
+        bar_data, _, category_col = _prepare_chart_data(df, column)
 
-        df[column].head(10).plot(kind="bar")
+        # Apply a clean modern style if available
+        plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+        
+        fig, ax = plt.subplots(figsize=(10, 6))
 
-        plt.title(f"Bar Chart for {column}")
-        plt.xlabel("Index")
-        plt.ylabel(column)
+        # Plot bars
+        ax.bar(bar_data[category_col], bar_data[column], color=CHART_COLORS[:len(bar_data)], width=0.6)
+
+        ax.set_title(f"Top 10 {column} by {category_col}", fontsize=14, fontweight="bold", pad=15)
+        ax.set_xlabel(category_col, fontsize=12, labelpad=10)
+        ax.set_ylabel(column, fontsize=12, labelpad=10)
+        plt.xticks(rotation=45, ha='right')
+        ax.grid(True, linestyle="--", alpha=0.5)
 
         plt.tight_layout()
-
-        chart_path = "bar_chart.png"
-
-        plt.savefig(chart_path)
+        chart_path = os.path.join(os.getcwd(), "bar_chart.png")
+        plt.savefig(chart_path, format="png", dpi=150)
+        plt.close()
 
         return f"""
 ✅ Bar chart generated successfully.
 
-📈 Chart Column:
-{column}
+📈 Chart Column: {column}
 
-📁 Chart saved at:
-{chart_path}
+![Bar Chart](/charts/bar_chart.png)
 """
 
     except Exception as e:
@@ -162,7 +245,7 @@ def generate_pie_chart(file_path: str) -> str:
     """
 
     try:
-        df = pd.read_csv(file_path)
+        df = _load_csv(file_path)
 
         numeric_columns = df.select_dtypes(include=["number"]).columns
 
@@ -171,26 +254,40 @@ def generate_pie_chart(file_path: str) -> str:
 
         column = numeric_columns[0]
 
-        plt.figure(figsize=(7, 7))
+        _, pie_data, category_col = _prepare_chart_data(df, column)
 
-        df[column].head(5).plot(kind="pie", autopct="%1.1f%%")
+        plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+        fig, ax = plt.subplots(figsize=(8, 8))
 
-        plt.ylabel("")
+        wedges, texts, autotexts = ax.pie(
+            pie_data[column],
+            labels=pie_data[category_col],
+            autopct="%1.1f%%",
+            colors=CHART_COLORS[:len(pie_data)],
+            startangle=140,
+            wedgeprops={"edgecolor": "white", "linewidth": 1.5, "antialiased": True}
+        )
 
-        pie_chart_path = "pie_chart.png"
+        for text in texts:
+            text.set_fontsize(11)
+        for autotext in autotexts:
+            autotext.set_fontsize(10)
+            autotext.set_color("white")
+            autotext.set_weight("bold")
+
+        ax.set_title(f"Distribution of {column} by {category_col}", fontsize=14, fontweight="bold", pad=15)
 
         plt.tight_layout()
-
-        plt.savefig(pie_chart_path)
+        chart_path = os.path.join(os.getcwd(), "pie_chart.png")
+        plt.savefig(chart_path, format="png", dpi=150)
+        plt.close()
 
         return f"""
 ✅ Pie chart generated successfully.
 
-📈 Chart Column:
-{column}
+📈 Chart Column: {column}
 
-📁 Chart saved at:
-{pie_chart_path}
+![Pie Chart](/charts/pie_chart.png)
 """
 
     except Exception as e:
@@ -213,7 +310,7 @@ def generate_infographic(file_path: str) -> str:
     """
 
     try:
-        df = pd.read_csv(file_path)
+        df = _load_csv(file_path)
 
         numeric_columns = df.select_dtypes(include=["number"]).columns
 
@@ -222,34 +319,49 @@ def generate_infographic(file_path: str) -> str:
 
         column = numeric_columns[0]
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        bar_data, pie_data, category_col = _prepare_chart_data(df, column)
+
+        plt.style.use('seaborn-v0_8-whitegrid' if 'seaborn-v0_8-whitegrid' in plt.style.available else 'default')
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7))
         
-        # Bar chart
-        df[column].head(10).plot(kind="bar", ax=ax1)
-        ax1.set_title(f"Bar Chart for {column}")
-        ax1.set_xlabel("Index")
-        ax1.set_ylabel(column)
+        # 1. Bar chart on ax1
+        ax1.bar(bar_data[category_col], bar_data[column], color=CHART_COLORS[:len(bar_data)], width=0.6)
+        ax1.set_title(f"Top 10 {column} by {category_col}", fontsize=13, fontweight="bold", pad=10)
+        ax1.set_xlabel(category_col, fontsize=11)
+        ax1.set_ylabel(column, fontsize=11)
+        ax1.grid(True, linestyle="--", alpha=0.5)
+        ax1.tick_params(axis='x', rotation=45)
 
-        # Pie chart
-        df[column].head(5).plot(kind="pie", autopct="%1.1f%%", ax=ax2)
-        ax2.set_ylabel("")
-        ax2.set_title(f"Distribution of {column}")
+        # 2. Pie chart on ax2
+        wedges, texts, autotexts = ax2.pie(
+            pie_data[column],
+            labels=pie_data[category_col],
+            autopct="%1.1f%%",
+            colors=CHART_COLORS[:len(pie_data)],
+            startangle=140,
+            wedgeprops={"edgecolor": "white", "linewidth": 1.5, "antialiased": True}
+        )
+        for text in texts:
+            text.set_fontsize(10)
+        for autotext in autotexts:
+            autotext.set_fontsize(9)
+            autotext.set_color("white")
+            autotext.set_weight("bold")
+        ax2.set_title(f"Distribution of {column} by {category_col}", fontsize=13, fontweight="bold", pad=10)
 
-        plt.suptitle(f"CSV Analytics Infographic: {file_path}", fontsize=16)
+        display_name = file_path if len(file_path) < 50 else "Raw CSV Data"
+        plt.suptitle(f"CSV Analytics Infographic: {display_name}", fontsize=16, fontweight="bold", y=0.98)
         plt.tight_layout()
-
-        infographic_path = "infographic.png"
-        plt.savefig(infographic_path)
+        chart_path = os.path.join(os.getcwd(), "infographic.png")
+        plt.savefig(chart_path, format="png", dpi=150)
         plt.close()
 
         return f"""
 ✅ Infographic dashboard generated successfully.
 
-📈 Analyzed Column:
-{column}
+📈 Analyzed Column: {column}
 
-📁 Dashboard saved at:
-{infographic_path}
+![Infographic](/charts/infographic.png)
 """
     except Exception as e:
         return f"❌ Error generating infographic: {str(e)}"
@@ -271,7 +383,7 @@ def generate_insights(file_path: str) -> str:
     """
 
     try:
-        df = pd.read_csv(file_path)
+        df = _load_csv(file_path)
 
         numeric_cols = df.select_dtypes(include=["number"]).columns
 
@@ -338,8 +450,14 @@ Your responsibilities:
 - Explain data trends
 - Generate AI insights
 
-CRITICAL RULE:
-Whenever the user provides a prompt with a CSV file or asks to analyze an uploaded CSV file, you MUST automatically use the `generate_infographic` tool to create a visual infographic chart for them.
+CRITICAL RULE 1:
+Whenever the user provides a prompt with a CSV file or asks to analyze an uploaded CSV file, you should automatically use the `generate_infographic` tool to create a visual infographic dashboard for them. However, if the user explicitly requests a specific visualization type (such as only a 'pie chart' or a 'bar chart'), you MUST use the corresponding dedicated tool (`generate_pie_chart` or `generate_bar_chart`) instead of the general infographic dashboard.
+
+CRITICAL RULE 2:
+If the user provides raw CSV content directly inside their text prompt/message instead of a file or file path, you MUST first save the raw CSV content to a file using the `save_csv_content` tool (you can name the file 'temp_data.csv' or another appropriate name). Once saved, use the resulting file path to run the infographic/analytics tools.
+
+CRITICAL RULE 3 - ALWAYS SHOW CHARTS INLINE:
+When a chart tool returns a response that contains a markdown image tag like ![...](data:image/png;base64,...), you MUST copy that EXACT full image markdown tag character-for-character into your reply to the user. Do NOT summarize it, describe it, omit it, or replace it with words like "chart has been generated". The image tag must appear in your reply exactly as returned by the tool so it renders inline in the chat. This is mandatory for every chart response.
 
 When users ask:
 - analyze CSV
@@ -358,6 +476,7 @@ Always behave like a professional AI Data Analyst.
         generate_infographic,
         generate_insights,
         greet_user,
+        save_csv_content,
     ],
 )
 
