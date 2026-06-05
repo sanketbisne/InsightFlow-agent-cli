@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/hero_banner.png" alt="InsightFlow AI Banner" width="100%" style="border-radius: 12px;" />
+  <img src="docs/hero_banner.png" alt="InsightFlow AI Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 
   <br/><br/>
 
@@ -10,201 +10,154 @@
   [![Cloud Run](https://img.shields.io/badge/Cloud_Run-Ready-34A853?style=for-the-badge&logo=googlecloud&logoColor=white)](https://cloud.google.com/run)
 
   <br/>
-  <p><b>An AI analytics agent scaffolded with <code>agents-cli</code> — upload a CSV, get instant charts & insights.</b></p>
+  <p><b>Your AI-powered personal Data Analyst. Scaffolded with <code>agents-cli</code> — upload a CSV, get instant charts & insights.</b></p>
 </div>
 
 ---
 
-## 🤖 What is this?
+## 📖 Overview
 
-**InsightFlow AI** is an AI agent built using **[google-agents-cli](https://pypi.org/project/google-agents-cli/)** — Google's official CLI for creating, testing, evaluating, and deploying production-grade AI agents on Google Cloud.
+**InsightFlow AI** is a production-ready agentic AI application built using **[google-agents-cli](https://google.github.io/agents-cli/)**—Google's unified CLI tool for the full Agent Development Kit (ADK) development lifecycle.
 
-This project demonstrates the complete **agents-cli** lifecycle:
-
-```
-agents-cli create  →  agents-cli playground  →  agents-cli eval  →  agents-cli deploy
-```
-
-The agent itself is powered by **Google ADK** + **Gemini Flash** and acts as a personal data analyst — analyzing CSVs, generating charts, and surfacing AI insights.
+By declaring intent through config, writing custom Python tool logic, and utilizing Gemini's reasoning engine, InsightFlow automatically processes CSV files, generates rich visualizations, and extracts business intelligence.
 
 ---
 
-## ⚡ Scaffolded with agents-cli
+## 🏗️ Technical Architecture
 
-This project was bootstrapped with a single command:
-
-```bash
-# Install the CLI
-uv tool install google-agents-cli
-
-# Create the agent project
-agents-cli create insightflow-ai
-```
-
-The CLI scaffolded the full project structure with:
-- ✅ ADK agent template (`app/agent.py`)
-- ✅ FastAPI backend (`app/fast_api_app.py`)
-- ✅ Dockerfile for Cloud Run
-- ✅ Terraform infra configs (`deployment/terraform/`)
-- ✅ CI/CD with Cloud Build (`.cloudbuild/`)
-- ✅ Eval harness (`tests/eval/`)
-- ✅ Unit & integration test suite (`tests/`)
-- ✅ `agents-cli-manifest.yaml` — declarative project config
-
----
-
-## 🏗️ Architecture
+The following diagram illustrates how the `agents-cli` orchestrates the local development, model execution, deployment, and monitoring paths.
 
 <div align="center">
-  <img src="docs/architecture.png" alt="InsightFlow AI Architecture" width="80%" style="border-radius: 12px; margin: 16px 0;" />
+  <img src="docs/agents_cli_architecture.png" alt="agents-cli Technical Architecture" width="90%" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 20px 0;" />
+  <p><i>System Architecture: CLI Interface ➜ Manifest Config ➜ Agent Logic (ADK) ➜ Gemini Reasoning ➜ Deployments & Telemetry</i></p>
 </div>
 
 ---
 
-## 🚀 agents-cli Workflow
+## 🔄 Agent Development Lifecycle (ADLC)
 
-### 1. Install
+`agents-cli` structures the lifecycle of your Agentic workflows into 6 distinct stages:
 
+<div align="center">
+  <img src="docs/agents_cli_lifecycle.png" alt="Agent Development Lifecycle" width="90%" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin: 20px 0;" />
+  <p><i>The 6-Step Developer Loop enabled by agents-cli</i></p>
+</div>
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- **[uv](https://docs.astral.sh/uv/)** — Extremely fast Python package installer and manager.
+- **google-agents-cli** — Install globally via:
+  ```bash
+  uv tool install google-agents-cli
+  ```
+- **Google Cloud SDK** — Configured with active credentials:
+  ```bash
+  gcloud auth application-default login
+  ```
+
+### 1. Project Initialization & Setup
+The repository comes pre-scaffolded with all necessary configuration. Install the project dependencies using the CLI:
 ```bash
-uv tool install google-agents-cli
-agents-cli install          # installs project dependencies via uv
+agents-cli install
 ```
 
-### 2. Develop & Test Locally
-
+### 2. Run the Interactive Local Server
+While `agents-cli playground` launches the default development interface, for full chart visualization (which serves static assets from `/charts/`), launch the FastAPI application directly:
 ```bash
-# Launch the interactive playground UI
-agents-cli playground
+uv run uvicorn app.fast_api_app:app --host 127.0.0.1 --port 8080 --reload
 ```
+Once started, navigate to:
+👉 **[http://127.0.0.1:8080/dev-ui/?app=app](http://127.0.0.1:8080/dev-ui/?app=app)**
 
-> [!NOTE]
-> For chart image rendering to work inline, run the server directly via uvicorn instead:
-> ```bash
-> uv run uvicorn app.fast_api_app:app --host 127.0.0.1 --port 8080 --reload
-> ```
-> Then open **http://127.0.0.1:8080/dev-ui/?app=app**
+---
 
-### 3. Evaluate Agent Quality
+## 🧪 Testing and Quality Evaluation
 
+Agent development requires robust testing loops to measure agent prompt stability and tool correctness.
+
+### Local Quality Evals (LLM-as-a-Judge)
+Run the built-in evaluation set to test model outputs against expectations defined in `tests/eval/evalsets/`:
 ```bash
-# Run eval against the built-in evalset
 agents-cli eval run
 ```
 
-Evalsets are defined in `tests/eval/evalsets/` using the ADK eval schema. Iterate until your agent meets quality thresholds.
-
-### 4. Lint & Test
-
+### Unit & Integration Testing
+Execute standard unit tests and API integration suites:
 ```bash
-# Code quality check
-agents-cli lint
-
-# Run unit + integration tests
+# Run pytest test suite
 uv run pytest tests/unit tests/integration -v
-```
 
-### 5. Deploy to Google Cloud Run
-
-```bash
-# One-time infra setup (Terraform)
-agents-cli infra single-project
-
-# Deploy the agent
-agents-cli deploy
+# Run agent static analysis
+agents-cli lint
 ```
 
 ---
 
-## 🛠️ Agent Capabilities
+## 🛠️ Custom Agent Capabilities
 
-Built by customizing the scaffolded `app/agent.py`:
+Scaffolded under `app/agent.py`, the agent leverages customized Python tool execution to perform data operations:
 
-| Tool | What it does |
-|---|---|
-| `analyze_csv` | Loads a CSV and returns shape, columns, and sample rows |
-| `generate_bar_chart` | Generates a bar chart PNG from the top numeric column |
-| `generate_pie_chart` | Generates a pie chart showing distribution by category |
-| `generate_infographic` | Combined bar + pie dashboard in one image |
-| `generate_insights` | AI-driven trend summary and business recommendations |
-| `save_csv_content` | Saves raw pasted CSV text to a temp file for further analysis |
-
-**Example prompts in the playground:**
-```
-📌 "Analyze sales_data.csv and show me the trends"
-📌 "Generate a bar chart from this file"
-📌 "Give me a pie chart of Revenue by Region"
-📌 "What are the key insights from this dataset?"
-```
+| Capability Tool | Description | Input Context |
+| :--- | :--- | :--- |
+| `analyze_csv` | Parses CSV metadata, columns, shape, and structure | CSV File Path |
+| `generate_bar_chart` | Dynamically maps sales metrics to clean Matplotlib bar charts | CSV Column |
+| `generate_pie_chart` | Formulates category distribution percentages as pie charts | CSV Column |
+| `generate_infographic` | Combines analysis metrics into a single multi-chart visual layout | CSV Path |
+| `generate_insights` | Evaluates charts and generates strategic executive advice | CSV + Graph context |
+| `save_csv_content` | Saves pasted raw CSV content locally for analysis tools | Raw text block |
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```text
 insightflow-ai/
-├── agents-cli-manifest.yaml   # ← agents-cli project config (do not delete)
-├── GEMINI.md                  # ← AI coding assistant context for this project
+├── agents-cli-manifest.yaml   # Declarative agents-cli configuration manifest
+├── GEMINI.md                  # Developer guidelines and agent context
+├── Dockerfile                 # Cloud Run containerization schema
+├── pyproject.toml             # Dependencies managed via uv
 ├── app/
-│   ├── agent.py               # Core agent logic — tools, instructions, ADK App
-│   ├── fast_api_app.py        # FastAPI server with /charts/ image endpoint
+│   ├── agent.py               # Main Agent definition, instructions, and tools
+│   ├── fast_api_app.py        # FastAPI server running the dev-ui and chart assets
 │   └── app_utils/
-│       ├── telemetry.py       # OpenTelemetry + GCP Cloud Trace setup
-│       └── typing.py          # Shared Pydantic types
-├── tests/
-│   ├── unit/                  # Tool-level unit tests
-│   ├── integration/           # End-to-end API tests
-│   └── eval/                  # ADK evalsets for LLM quality scoring
-│       ├── evalsets/          # Golden Q&A pairs (agents-cli eval run)
-│       └── eval_config.yaml   # Eval config (model judge, thresholds)
+│       ├── telemetry.py       # OpenTelemetry context for tracing
+│       └── typing.py          # Shared type validation
 ├── deployment/
-│   └── terraform/             # GCP infra: Cloud Run, IAM, BigQuery, GCS
-├── .cloudbuild/               # Cloud Build CI/CD pipeline configs
-├── docs/                      # README images
-├── Dockerfile                 # Container for Cloud Run deployment
-└── pyproject.toml             # Python deps (managed via uv)
+│   └── terraform/             # Cloud Infrastructure (Cloud Run, BigQuery, IAM)
+├── docs/                      # UI images and architecture assets
+└── tests/
+    ├── unit/                  # Local logic unit tests
+    ├── integration/           # Endpoint integration tests
+    └── eval/                  # Golden dataset evaluations
 ```
 
 ---
 
-## 🔑 agents-cli Command Reference
+## ☁️ Production Deployment
 
-| Command | Purpose |
-|---|---|
-| `agents-cli create <name>` | Scaffold a new agent project |
-| `agents-cli install` | Install project dependencies |
-| `agents-cli playground` | Launch local dev UI for interactive testing |
-| `agents-cli eval run` | Run LLM-as-judge evaluation against evalsets |
-| `agents-cli lint` | Check code quality |
-| `agents-cli deploy` | Deploy agent to Cloud Run (dev environment) |
-| `agents-cli infra single-project` | Provision GCP infrastructure via Terraform |
-| `agents-cli infra cicd` | Set up full CI/CD pipeline with Cloud Build |
-| `agents-cli scaffold upgrade` | Upgrade project to latest agents-cli version |
-
----
-
-## ☁️ Deployment
-
-This agent is Cloud Run–ready out of the box (scaffolded by `agents-cli`):
+Deploy the agent to Google Cloud Run with single-command ease:
 
 ```bash
+# Set your active GCP Project
 gcloud config set project <YOUR_PROJECT_ID>
+
+# Provision required project infrastructure
+agents-cli infra single-project
+
+# Package, build, and deploy the agent app
 agents-cli deploy
 ```
-
-The Terraform configs in `deployment/terraform/` automatically provision:
-- **Cloud Run** service with auto-scaling
-- **BigQuery** dataset for agent telemetry & analytics
-- **GCS bucket** for artifact storage
-- **IAM** service accounts with least-privilege roles
-- **Cloud Build** triggers for CI/CD
 
 ---
 
 > [!TIP]
-> Use **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** for AI-assisted development in this repo. The `GEMINI.md` file pre-configures agent context and development phases.
+> Utilize the **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** for AI-assisted development. Context definitions are configured inside `GEMINI.md`.
 
-> [!IMPORTANT]
-> Ensure `gcloud auth application-default login` is completed and `GOOGLE_CLOUD_PROJECT` is set before running locally.
+> [!NOTE]
+> All telemetry (user prompts, tool execution paths, token counts) is exported directly to Google Cloud BigQuery for enterprise-grade analytics and observability.
 
 ---
 
