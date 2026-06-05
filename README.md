@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/hero_banner.png" alt="InsightFlow AI Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);" />
+  <img src="docs/hero_banner.png" alt="agents-cli Banner" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.35);" />
 
   <br/><br/>
 
@@ -9,16 +9,16 @@
   [![Python](https://img.shields.io/badge/Python_3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 
   <br/>
-  <p><b>An AI CSV Analytics Agent scaffolded and deployed using Google's <code>agents-cli</code>.</b></p>
+  <p><b>An AI CSV Analytics Agent scaffolded and managed using Google's <code>agents-cli</code>.</b></p>
 </div>
 
 ---
 
 ## 📖 Introduction
 
-**InsightFlow AI** is a production-grade agentic application created using **`agents-cli`**—Google's unified CLI tool for the full Agent Development Kit (ADK) lifecycle. 
+**InsightFlow AI** is a production-grade agentic application created using **`agents-cli`**—Google's unified CLI tool for the full Agent Development Lifecycle (ADLC). 
 
-This repository serves as a blueprint showing how to build, evaluate, and deploy a Gemini-powered agent that takes CSV data inputs, writes code or builds charts, and outputs rich infographic summaries dynamically.
+This project serves as a blueprint showing how to scaffold, build, evaluate, and deploy a Gemini-powered agent that takes CSV data inputs, runs custom Python tools, and outputs rich infographic summaries dynamically.
 
 ---
 
@@ -79,29 +79,59 @@ Doohickeys,9500,240
 "Analyze this data and generate an infographic dashboard"
 ```
 
-### 4. Under the Hood execution
-- The agent detects raw CSV text and calls `save_csv_content(csv_content)` to store it as `temp_data.csv`.
-- The agent calls `generate_infographic("temp_data.csv")`.
-- Matplotlib renders a dual-visualization dashboard:
+### 4. Under the Hood Execution
+* The agent detects raw CSV text and calls `save_csv_content(csv_content)` to store it as `temp_data.csv`.
+* The agent calls `generate_infographic("temp_data.csv")`.
+* Matplotlib renders a dual-visualization dashboard:
   - Left Panel: **Bar chart** comparing sales volume.
   - Right Panel: **Pie chart** showing distribution percentages.
-- The infographic is saved to `/charts/infographic.png`.
-- The agent responds with the inline markdown tag `![Infographic](/charts/infographic.png)` showing the visual dashboard in your chat view.
+* The infographic is saved to `/charts/infographic.png`.
+* The agent responds with the inline markdown tag `![Infographic](/charts/infographic.png)` showing the visual dashboard in your chat view.
 
 ---
 
 ## 🛠️ CLI Command Reference
 
-Manage your agent workspace with these core `agents-cli` commands:
+Manage your agent lifecycle using the official `agents-cli` commands:
 
 | Command | Purpose |
 | :--- | :--- |
-| **`agents-cli install`** | Installs dependencies specified in `pyproject.toml` |
-| **`agents-cli playground`** | Launches the local interactive web UI chat playground |
-| **`agents-cli eval run`** | Runs programmatic test cases against the defined evalsets |
-| **`agents-cli lint`** | Checks your Python agent definitions for errors and warnings |
-| **`agents-cli deploy`** | Packages your code in Docker and deploys to GCP Cloud Run |
-| **`agents-cli infra single-project`** | Generates and runs Terraform to set up GCP infrastructure |
+| **`agents-cli setup`** | Install tools and skills to detected coding agents |
+| **`agents-cli create [name]`** | Create a new GCP-based AI agent project from templates |
+| **`agents-cli install`** | Install project dependencies |
+| **`agents-cli playground`** | Start the local interactive agent playground |
+| **`agents-cli run`** | Run the agent with a single prompt (non-interactive) |
+| **`agents-cli eval generate`** | Run agent inference over defined evaluation cases |
+| **`agents-cli eval grade`** | Grade generated traces and evaluate agent quality |
+| **`agents-cli scaffold enhance .`** | Add deployment targets or CI/CD pipelines to a project |
+| **`agents-cli scaffold upgrade`** | Upgrade the project structure and dependencies to the latest version |
+| **`agents-cli infra`** | Provision Google Cloud infrastructure resources via Terraform |
+| **`agents-cli deploy`** | Build container image and deploy the agent to Google Cloud Run |
+| **`agents-cli lint`** | Run code quality checks on the agent configuration and code |
+
+---
+
+## 🧪 Testing & Evaluation
+
+### Programmatic Quality Evals
+Run inference over the evaluation set to generate traces, then grade the results:
+```bash
+# 1. Run agent inference over eval cases
+agents-cli eval generate
+
+# 2. Grade generated traces and view scores
+agents-cli eval grade
+```
+
+### Unit & Integration Testing
+Execute standard unit tests and API integration suites:
+```bash
+# Run pytest test suite
+uv run pytest tests/unit tests/integration -v
+
+# Run agent static checks
+agents-cli lint
+```
 
 ---
 
@@ -119,7 +149,7 @@ insightflow-ai/
 │   └── app_utils/
 │       ├── telemetry.py       # Observability logs integration
 │       └── typing.py          # Shared runtime types
-├── docs/                      # Images and diagrams
+├── docs/                      # UI images and architecture assets
 └── tests/
     ├── unit/                  # Local tool testing
     ├── integration/           # E2E server testing
@@ -130,18 +160,26 @@ insightflow-ai/
 
 ## ☁️ Deployment to Google Cloud Run
 
-Ready to deploy to staging or production? Run:
+Deploy the agent to Google Cloud Run with single-command ease:
 
 ```bash
 # 1. Select target project
 gcloud config set project <YOUR_PROJECT_ID>
 
-# 2. Provision Google Cloud infrastructure (BigQuery, IAM, Artifact Registry)
+# 2. Provision Google Cloud infrastructure (BigQuery, IAM, GCS)
 agents-cli infra single-project
 
 # 3. Deploy the application service
 agents-cli deploy
 ```
+
+---
+
+> [!TIP]
+> Utilize the **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** for AI-assisted development. Context definitions are configured inside `GEMINI.md`.
+
+> [!NOTE]
+> All telemetry (user prompts, tool execution paths, token counts) is exported directly to Google Cloud BigQuery for enterprise-grade analytics and observability.
 
 ---
 
